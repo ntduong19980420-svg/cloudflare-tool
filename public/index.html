@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Cấu Hình Thêm Domain Cloudflare</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-[#0f172a] text-slate-200 min-h-screen p-8 font-sans">
+  <div class="max-w-5xl mx-auto bg-[#1e293b] rounded-lg p-6 border border-slate-700 shadow-xl">
+    <h2 class="text-xl font-bold mb-6 flex items-center gap-2 text-white">
+      <i class="fa-solid fa-gear text-blue-500"></i> Cấu Hình Thêm Domain
+    </h2>
+
+    <form class="space-y-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold mb-1 text-slate-300">
+            <i class="fa-solid fa-key mr-1"></i> Cloudflare API Key
+          </label>
+          <input type="password" id="apiKey" placeholder="Global API Key của bạn"
+            class="w-full bg-[#0f172a] border border-slate-700 rounded p-2.5 text-slate-100 focus:outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1 text-slate-300">
+            <i class="fa-solid fa-user mr-1"></i> Email Cloudflare
+          </label>
+          <input type="email" id="email" placeholder="email@example.com"
+            class="w-full bg-[#0f172a] border border-slate-700 rounded p-2.5 text-slate-100 focus:outline-none focus:border-blue-500">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-slate-300">
+          <i class="fa-solid fa-server mr-1"></i> Server IP (tùy chọn)
+        </label>
+        <input type="text" id="serverIp" placeholder="1.2.3.4 (để trống nếu không cần A record)"
+          class="w-full bg-[#0f172a] border border-slate-700 rounded p-2.5 text-slate-100 focus:outline-none focus:border-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold mb-1 text-slate-300">
+          <i class="fa-solid fa-list-check mr-1"></i> Danh Sách Domain (mỗi dòng một domain)
+        </label>
+        <textarea id="domains" rows="5" placeholder="example1.com&#10;example2.com"
+          class="w-full bg-[#0f172a] border border-slate-700 rounded p-3 text-slate-100 font-mono focus:outline-none focus:border-blue-500"></textarea>
+      </div>
+
+      <div class="flex flex-wrap gap-6 items-center text-sm">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" id="jumpStart" checked class="accent-blue-500 w-4 h-4">
+          <span>Jump Start (quét DNS tự động)</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" id="delay" class="accent-blue-500 w-4 h-4">
+          <span>Delay giữa domain (500ms)</span>
+        </label>
+      </div>
+
+      <div class="text-center pt-4">
+        <button type="button" onclick="submitData()" id="btnSubmit"
+          class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg transition">
+          <i class="fa-solid fa-plus mr-1"></i> Bắt Đầu Thêm Domain
+        </button>
+      </div>
+    </form>
+
+    <div id="output" class="mt-6 hidden bg-[#0f172a] p-4 rounded border border-slate-700 text-sm font-mono overflow-auto max-h-60"></div>
+  </div>
+
+  <script>
+    async function submitData() {
+      const btn = document.getElementById('btnSubmit');
+      const output = document.getElementById('output');
+      
+      const payload = {
+        authEmail: document.getElementById('email').value,
+        globalApiKey: document.getElementById('apiKey').value,
+        serverIp: document.getElementById('serverIp').value,
+        domains: document.getElementById('domains').value.split('\n'),
+        jumpStart: document.getElementById('jumpStart').checked,
+        delay: document.getElementById('delay').checked
+      };
+
+      btn.disabled = true;
+      btn.innerText = 'Đang xử lý...';
+      output.classList.remove('hidden');
+      output.innerHTML = 'Đang kết nối đến Cloudflare API...';
+
+      try {
+        const res = await fetch('/api/add-domains', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        output.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+      } catch (err) {
+        output.innerText = 'Lỗi: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Bắt Đầu Thêm Domain';
+      }
+    }
+  </script>
+</body>
+</html>
