@@ -150,3 +150,52 @@ def generate_proxies():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80)
+import random
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+# --- CẤU HÌNH TÀI KHOẢN PROXYRACK ---
+PR_HOST = "premium.residential.proxyrack.net:10000"
+PR_USER = "gojyxogosutase"
+PR_PASS = "WPYV6U0-PXC4X1B-5KJAKQA-IAHTEI6-FPBHKYI-BI7X1IT-LRYHKBZ"
+
+# --- CẤU HÌNH TÀI KHOẢN IPROYAL ---
+# (Điền đúng Username và Password tài khoản IPRoyal của bạn vào 2 dòng này)
+IPR_HOST = "geo.iproyal.com:12321"
+IPR_USER = "ifA2KQmKtLN7ntVz"
+IPR_PASS = "UVa81wuxmBrzY3QF_country-ca_session-HJnQ1qhO_lifetime-168h"
+
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    data = request.get_json() or {}
+    country = data.get('country', 'CA').lower()
+    os_name = data.get('os', 'Windows')
+    qty = int(data.get('qty', 10))
+
+    proxies = []
+
+    half = qty // 2
+    rem = qty - half
+
+    # 1. Tạo Proxy từ PROXYRACK
+    for _ in range(half):
+        sess = ''.join(
+            random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=12)
+        )
+        p = f"{PR_HOST}:{PR_USER}-country-{country.upper()}-session-{sess}-osName-{os_name}:{PR_PASS}"
+        proxies.append(p)
+
+    # 2. Tạo Proxy từ IPROYAL
+    for _ in range(rem):
+        sess = ''.join(
+            random.choices('abcdefghijklmnopqrstuvwxyz0123456789', k=10)
+        )
+        p = f"{IPR_HOST}:{IPR_USER}-country-{country}-session-{sess}:{IPR_PASS}"
+        proxies.append(p)
+
+    # Trộn lẫn 2 nguồn để hiển thị ra bảng
+    random.shuffle(proxies)
+
+    return jsonify({'proxies': proxies})
